@@ -330,6 +330,43 @@ A3473 — 18 Pro Max · United States	A3473 — 18 Pro Max · 美国
 A3716 — 18 Pro Max · Canada / Japan	A3716 — 18 Pro Max · 加拿大／日本
 A3717 — 18 Pro Max · Other regions	A3717 — 18 Pro Max · 其他地区
 A3718 — 18 Pro Max · China mainland	A3718 — 18 Pro Max · 中国大陆
+Version: %@ (%@)	版本：%@（%@）
+Developed by huamidev	由 huamidev 开发
+© %@ huamidev. All rights reserved.	© %@ huamidev。保留所有权利。
+Verified import	已验证的导入
+Access: requesting sandbox extension	访问：正在请求沙盒扩展
+Access: extension scope ended	访问：扩展作用域已结束
+Access operation failed: 	访问操作失败：
+Read: %lld bytes; validating plist	读取：%lld 字节；正在验证 plist
+Original values: recovered from device backups	原值：已从设备备份恢复
+Original values: fields and cache flags saved and verified	原值：字段和缓存标记已保存并验证
+Backup: %lld bytes saved and verified	备份：已保存并验证 %lld 字节
+Write: %lld bytes	写入：%lld 字节
+Readback: comparing full plist and value types	回读：正在比较完整 plist 和值类型
+Readback: verified	回读：已验证
+Write/readback failed: 	写入或回读失败：
+Recovery: restoring previous bytes	恢复：正在还原之前的数据
+Recovery: previous bytes restored and verified	恢复：之前的数据已还原并验证
+%@ (was %@)	%@（原为 %@）
+CacheExtra: %lld keys	CacheExtra：%lld 个键
+CacheData: %lld bytes	CacheData：%lld 字节
+Cache layout: %@, %lld slots	缓存布局：%@，%lld 个槽位
+green-tea: index %d, offset 0x%X; not-green-tea: index %d, offset 0x%X	green-tea：索引 %d，偏移 0x%X；not-green-tea：索引 %d，偏移 0x%X
+Cache offsets: 	缓存偏移：
+model name: %@	机型名称：%@
+subtype: %@	子类型：%@
+region code: %@	地区代码：%@
+region info: %@	地区信息：%@
+product type: %@	产品类型：%@
+Starting MobileGestalt access	正在开始访问 MobileGestalt
+plist: %lld bytes	plist：%lld 字节
+%@: %lld bytes	%@：%lld 字节
+Device ownership verified; waiting for import confirmation	设备归属已验证；正在等待确认导入
+Verified device plist imported: %lld bytes	已导入验证过的设备 plist：%lld 字节
+Verified imported document restored	已恢复验证过的导入文稿
+Inbox cleanup failed	收件箱清理失败
+source=%@ fields=%lld	来源=%@ 字段=%lld
+%@ · %lld bytes · reason=%@	%@ · %lld 字节 · 原因=%@
 '''
 entries = {}
 for line in TRANSLATIONS.strip().splitlines():

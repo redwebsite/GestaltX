@@ -222,7 +222,7 @@ final class GestaltManager: ObservableObject {
 
     private func describe(_ value: Any?) -> String {
         guard let value else { return "∅" }
-        if let data = value as? Data { return "\(data.count) bytes" }
+        if let data = value as? Data { return String(format: L("%lld bytes"), Int64(data.count)) }
         let text = PlistValueKind.detect(value).text(for: value)
         return text.count > 80 ? String(text.prefix(80)) + "…" : text
     }
@@ -233,7 +233,7 @@ final class GestaltManager: ObservableObject {
             let path = prefix.isEmpty ? key : prefix + "." + key
             switch (before[key], after[key]) {
             case (nil, let value?): lines.append("+ \(path) = \(describe(value))")
-            case (let value?, nil): lines.append("- \(path)  (was \(describe(value)))")
+            case (let value?, nil): lines.append("- " + String(localized: "\(path) (was \(describe(value)))"))
             case (let oldValue?, let newValue?):
                 guard !GestaltDocument.valuesEqual(oldValue, newValue) else { continue }
                 if let oldDict = oldValue as? [String: Any], let newDict = newValue as? [String: Any] {
@@ -248,21 +248,21 @@ final class GestaltManager: ObservableObject {
     }
 
     private func summarize(_ document: GestaltDocument) -> [String] {
-        var lines = ["CacheExtra: \(document.extra.count) keys"]
-        if let cacheData = document.root["CacheData"] as? Data { lines.append("CacheData: \(cacheData.count) bytes") }
+        var lines = [String(localized: "CacheExtra: \(document.extra.count) keys")]
+        if let cacheData = document.root["CacheData"] as? Data { lines.append(String(localized: "CacheData: \(cacheData.count) bytes")) }
         do {
             let layout = try MobileGestaltCacheLayout.resolve(in: document)
-            lines.append("Cache layout: \(layout.uuid), \(layout.slotCount) slots")
-            lines.append(String(format: "green-tea: index %d, offset 0x%X; not-green-tea: index %d, offset 0x%X",
+            lines.append(String(localized: "Cache layout: \(layout.uuid), \(layout.slotCount) slots"))
+            lines.append(String(format: L("green-tea: index %d, offset 0x%X; not-green-tea: index %d, offset 0x%X"),
                                 layout.greenTeaIndex, layout.greenTeaOffset, layout.notGreenTeaIndex, layout.notGreenTeaOffset))
-        } catch { lines.append("Cache offsets: " + error.localizedDescription) }
-        if let model = document.artwork["ArtworkDeviceProductDescription"] as? String { lines.append("model name: \(model)") }
-        if let subtype = document.artwork["ArtworkDeviceSubType"] { lines.append("subtype: \(describe(subtype))") }
-        if let region = document.extra[GestaltKeys.regionCode] as? String { lines.append("region code: \(region)") }
+        } catch { lines.append(L("Cache offsets: ") + error.localizedDescription) }
+        if let model = document.artwork["ArtworkDeviceProductDescription"] as? String { lines.append(String(localized: "model name: \(model)")) }
+        if let subtype = document.artwork["ArtworkDeviceSubType"] { lines.append(String(localized: "subtype: \(describe(subtype))")) }
+        if let region = document.extra[GestaltKeys.regionCode] as? String { lines.append(String(localized: "region code: \(region)")) }
         for key in [GestaltKeys.regionInfo, GestaltKeys.legacyRegionInfo] {
-            if let info = document.extra[key] as? String { lines.append("region info: \(info)") }
+            if let info = document.extra[key] as? String { lines.append(String(localized: "region info: \(info)")) }
         }
-        if let product = document.extra[GestaltKeys.productType] as? String { lines.append("product type: \(product)") }
+        if let product = document.extra[GestaltKeys.productType] as? String { lines.append(String(localized: "product type: \(product)")) }
         return lines
     }
 
@@ -276,12 +276,12 @@ final class GestaltManager: ObservableObject {
     func connect(showErrorAlert: Bool = true) async {
         guard !isBusy else { return }
         isBusy = true; status = "Checking device access…"
-        log("[read] Starting MobileGestalt access")
+        log("[read] " + L("Starting MobileGestalt access"))
         defer { isBusy = false }
         do {
             let result = try await files.loadDevice()
             accept(result); deviceAccessible = true; status = "Device connected"
-            log("[read] plist: \(result.data.count) bytes")
+            log("[read] " + String(localized: "plist: \(result.data.count) bytes"))
             for line in summarize(result.document) { log("[read] " + line) }
             log(L("Device connected"))
         } catch {
@@ -303,7 +303,7 @@ final class GestaltManager: ObservableObject {
             guard (values.fileSize ?? 0) <= 16 * 1024 * 1024 else { throw GestaltFailure("Choose a plist smaller than 16 MB.") }
             let result = try await files.loadLocal(data: Data(contentsOf: url), name: url.lastPathComponent)
             accept(result); status = "Local file opened"; needsRespring = false
-            log("[open] \(url.lastPathComponent): \(result.data.count) bytes")
+            log("[open] " + String(localized: "\(url.lastPathComponent): \(result.data.count) bytes"))
             for line in summarize(result.document) { log("[open] " + line) }
             log(L("Local file opened") + ": " + url.lastPathComponent)
         } catch { failed(error) }
@@ -339,7 +339,7 @@ final class GestaltManager: ObservableObject {
         do {
             let bytes = try inbox.read(entry)
             let (payload, identity) = try await verifyImport(bytes)
-            log("[share] Device ownership verified; waiting for import confirmation")
+            log("[share] " + L("Device ownership verified; waiting for import confirmation"))
             return PlistImportOffer(data: payload, name: entry.name, identity: identity, sharedSource: (inbox, entry))
         } catch {
             // A lack of device access may be temporary; keep that entry for retry.
@@ -371,7 +371,7 @@ final class GestaltManager: ObservableObject {
             loaded.ownershipVerified = true
             accept(loaded); status = "Local file opened"; needsRespring = false
             discardImport(offer)
-            log("[share] Verified device plist imported: \(offer.data.count) bytes")
+            log("[share] " + String(localized: "Verified device plist imported: \(offer.data.count) bytes"))
         } catch { failed(error) }
     }
 
@@ -387,7 +387,7 @@ final class GestaltManager: ObservableObject {
             accept(restored); needsRespring = true
             status = "Changes verified on device"
             message = L("Backup restored and verified.") + " " + L("Some changes require a device restart.")
-            log("[restore] Verified imported document restored")
+            log("[restore] " + L("Verified imported document restored"))
             await reloadBackups()
         } catch { failed(error); await reloadBackups() }
     }
@@ -395,7 +395,7 @@ final class GestaltManager: ObservableObject {
     func discardImport(_ offer: PlistImportOffer) {
         if let (inbox, entry) = offer.sharedSource {
             do { try inbox.acknowledge(entry) }
-            catch { log("[share] Inbox cleanup failed") }
+            catch { log("[share] " + L("Inbox cleanup failed")) }
         }
     }
 
@@ -430,7 +430,7 @@ final class GestaltManager: ObservableObject {
         isBusy = true
         defer { isBusy = false }
         do {
-            log("[apply] source=\(snapshot.source.rawValue) fields=\(changeCount)")
+            log("[apply] " + String(localized: "source=\(L(snapshot.source == .device ? "Device" : "Local File")) fields=\(changeCount)"))
             logChanges(from: snapshot.document, to: edited, prefix: "[diff] ")
             let absentKeys = Set(Capability.all.filter { choices[$0.id] == .removeAdded }.flatMap(\.keys))
             let result = try await files.commit(edited, expected: snapshot, originallyAbsentKeys: absentKeys)
@@ -459,7 +459,7 @@ final class GestaltManager: ObservableObject {
         do {
             let data = try await files.backupData(record)
             let restored = try GestaltDocument(data: data)
-            log("[restore] \(record.filename) · \(record.byteCount) bytes · reason=\(record.reason)")
+            log("[restore] " + String(localized: "\(record.filename) · \(record.byteCount) bytes · reason=\(L(record.reason))"))
             logChanges(from: snapshot.document, to: restored, prefix: "[restore-diff] ")
             let result = try await files.commit(restored, expected: snapshot, restoring: record)
             accept(result); needsRespring = result.source == .device

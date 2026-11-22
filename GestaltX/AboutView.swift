@@ -32,7 +32,7 @@ struct AboutView: View {
                         Image(systemName: "cpu").font(.title3).foregroundStyle(.blue)
                         VStack(alignment: .leading, spacing: 4) {
                             Text("worse_query").font(.headline).foregroundStyle(.primary)
-                            Text("forcequitOS · Taj C").font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: "forcequitOS · Taj C").font(.caption).foregroundStyle(.secondary)
                         }
                         Spacer()
                         Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(.tertiary)
@@ -54,7 +54,7 @@ struct AboutView: View {
     private var aboutFooter: some View {
         let year = Calendar.current.component(.year, from: .now)
         return VStack(spacing: 8) {
-            Text("Version: \(GestaltBrand.version) (\(GestaltBrand.build))")
+            Text(String(localized: "Version: \(GestaltBrand.version) (\(GestaltBrand.build))"))
                 .foregroundStyle(.secondary)
                 .contentShape(Rectangle())
                 .onTapGesture {
@@ -63,9 +63,9 @@ struct AboutView: View {
                         UINotificationFeedbackGenerator().notificationOccurred(.success)
                     }
                 }
-            Text("Developed by huamidev")
+            Text(L("Developed by huamidev"))
                 .foregroundStyle(.secondary.opacity(0.7))
-            Text("© \(String(year)) huamidev. All rights reserved.")
+            Text(String(localized: "© \(String(year)) huamidev. All rights reserved."))
                 .foregroundStyle(.secondary.opacity(0.5))
         }
         .font(.caption)
