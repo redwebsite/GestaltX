@@ -286,18 +286,18 @@ actor GestaltFileStore {
     }
 
     private func withAccess<T>(_ operation: () throws -> T) throws -> T {
-        eventSink("Access: requesting sandbox extension")
+        eventSink(String(localized: "Access: requesting sandbox extension"))
         let handle = try acquire()
         guard handle >= 0 else { throw GestaltFailure("MobileGestalt access was denied. Check the OS version and App Group signing.") }
-        defer { release(handle); eventSink("Access: extension scope ended") }
+        defer { release(handle); eventSink(String(localized: "Access: extension scope ended")) }
         do { return try operation() }
-        catch { eventSink("Access operation failed: " + error.localizedDescription); throw error }
+        catch { eventSink(String(localized: "Access operation failed: ") + error.localizedDescription); throw error }
     }
 
     func loadDevice() throws -> DocumentSnapshot {
         try withAccess {
             let data = try Data(contentsOf: deviceURL)
-            eventSink("Read: \(data.count) bytes; validating plist")
+            eventSink(String(localized: "Read: \(data.count) bytes; validating plist"))
             let document = try GestaltDocument(data: data)
             let originals = try loadOriginals(for: document)
             if try !backups().contains(where: { $0.source == .device && $0.deviceID == deviceID }) {
@@ -407,7 +407,7 @@ actor GestaltFileStore {
                 .recordingOriginals(to: current)
         }
         if !originals.fields.isEmpty || originals.cachedOptions != nil {
-            eventSink("Original values: recovered from device backups")
+            eventSink(String(localized: "Original values: recovered from device backups"))
         }
         return originals
     }
@@ -422,7 +422,7 @@ actor GestaltFileStore {
             guard try Data(contentsOf: originalsURL) == data else {
                 throw GestaltFailure("Original values could not be saved and verified. No system write was started.")
             }
-            eventSink("Original values: fields and cache flags saved and verified")
+            eventSink(String(localized: "Original values: fields and cache flags saved and verified"))
         } catch {
             throw GestaltFailure("Original values could not be saved and verified. No system write was started.")
         }
@@ -438,7 +438,7 @@ actor GestaltFileStore {
         // A failed backup must stop a write. Verify the backup before creating its metadata.
         guard try Data(contentsOf: url) == data else { throw GestaltFailure("The backup could not be verified. No system write was started.") }
         try JSONEncoder().encode(record).write(to: backupDirectory.appendingPathComponent(record.id.uuidString + ".json"), options: .atomic)
-        eventSink("Backup: \(data.count) bytes saved and verified")
+        eventSink(String(localized: "Backup: \(data.count) bytes saved and verified"))
         return record
     }
 
@@ -512,21 +512,21 @@ actor GestaltFileStore {
             do {
                 // Atomic replacement needs directory-create access which some extensions lack.
                 // Keep the device file's existing inode; backups are already durable.
-                eventSink("Write: \(output.count) bytes")
+                eventSink(String(localized: "Write: \(output.count) bytes"))
                 try writeData(output, deviceURL)
-                eventSink("Readback: comparing full plist and value types")
+                eventSink(String(localized: "Readback: comparing full plist and value types"))
                 let readback = try Data(contentsOf: deviceURL)
                 guard try edited.matches(GestaltDocument(data: readback)) else { throw GestaltFailure("The write did not match the readback.") }
-                eventSink("Readback: verified")
+                eventSink(String(localized: "Readback: verified"))
                 return DocumentSnapshot(data: readback, document: edited, source: .device, name: expected.name, originals: originals.fields, cachedOptionsOriginal: originals.cachedOptions)
             } catch {
-                eventSink("Write/readback failed: " + error.localizedDescription)
-                eventSink("Recovery: restoring previous bytes")
+                eventSink(String(localized: "Write/readback failed: ") + error.localizedDescription)
+                eventSink(String(localized: "Recovery: restoring previous bytes"))
                 do {
                     try current.write(to: deviceURL)
                     guard try Data(contentsOf: deviceURL) == current else { throw GestaltFailure("The original file could not be restored.") }
                 } catch { throw GestaltFailure("Write verification and recovery failed. Keep the backup and recover the device file before trying again.") }
-                eventSink("Recovery: previous bytes restored and verified")
+                eventSink(String(localized: "Recovery: previous bytes restored and verified"))
                 throw GestaltFailure("The write failed. The previous file was restored and verified.")
             }
         }
